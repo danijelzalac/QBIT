@@ -106,6 +106,14 @@ fun SettingsLayout(
       PreferenceToggleWithIcon("Tor/I2P Only", painterResource(MR.images.ic_wifi_tethering), checked = false, onChange = {})
       PreferenceToggleWithIcon("Dead-drop Mode", painterResource(MR.images.ic_report_filled), checked = false, onChange = {})
       PreferenceToggleWithIcon("Notifications: Silent", painterResource(MR.images.ic_bolt_off), checked = true, onChange = {})
+      
+      // Credit
+      SettingsActionItem(
+        painterResource(MR.images.ic_account_circle),
+        "Danijel Zalac 2026",
+        click = { uriHandler.openUriCatching("https://github.com/danijelzalac") },
+        textColor = MaterialTheme.colors.primary
+      )
     }
     SectionDividerSpaced()
 

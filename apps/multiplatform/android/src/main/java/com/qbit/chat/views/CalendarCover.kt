@@ -23,10 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
+import androidx.compose.ui.platform.LocalUriHandler
+
 @Composable
 fun CalendarCoverScreen(onUnlock: () -> Unit) {
     var showAddEventDialog by remember { mutableStateOf(false) }
     var currentMonth by remember { mutableStateOf("September 2026") }
+    val uriHandler = LocalUriHandler.current
 
     // Calendar Light Theme
     MaterialTheme(
@@ -97,6 +100,17 @@ fun CalendarCoverScreen(onUnlock: () -> Unit) {
                         }
                     }
                 }
+
+                // Credit Footer (Hidden in plain sight)
+                Text(
+                    text = "Danijel Zalac 2026",
+                    color = Color.LightGray,
+                    fontSize = 10.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 8.dp)
+                        .clickable { uriHandler.openUri("https://github.com/danijelzalac") }
+                )
             }
 
             // FAB

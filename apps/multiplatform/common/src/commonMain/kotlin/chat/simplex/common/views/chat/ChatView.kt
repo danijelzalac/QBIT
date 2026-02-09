@@ -1089,6 +1089,53 @@ fun BoxScope.ChatInfoToolbar(
     BackHandler(onBack = onBackClicked)
   }
   val barButtons = arrayListOf<@Composable RowScope.() -> Unit>()
+  
+  // QBIT: Erase Session Button
+  if (chatInfo !is ChatInfo.Local) {
+    barButtons.add {
+        val showEraseDialog = remember { mutableStateOf(false) }
+        IconButton(onClick = { showEraseDialog.value = true }) {
+             Icon(androidx.compose.material.icons.Icons.Default.Delete, "Erase Session", tint = Color.Red)
+        }
+        
+        if (showEraseDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showEraseDialog.value = false },
+                title = { Text("Erase Session?") },
+                text = { Text("This will permanently wipe this conversation locally. (Simulated Remote Wipe)") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showEraseDialog.value = false
+                            scope.launch {
+                                withBGApi {
+                                    if (chatInfo is ChatInfo.Direct) {
+                                        chatModel.controller.apiDeleteContact(chatInfo.remoteHostId, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
+                                    } else if (chatInfo is ChatInfo.Group) {
+                                        chatModel.controller.apiDeleteChat(chatInfo.remoteHostId, ChatType.Group, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
+                                    }
+                                    withContext(Dispatchers.Main) {
+                                        chatModel.chatId.value = null
+                                        back()
+                                    }
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                    ) {
+                        Text("Erase", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showEraseDialog.value = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
+  }
+
   val menuItems = arrayListOf<@Composable () -> Unit>()
   val activeCall by remember { chatModel.activeCall }
   if (chatInfo is ChatInfo.Local) {

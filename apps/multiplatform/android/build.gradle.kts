@@ -5,15 +5,15 @@ plugins {
     id("org.jetbrains.compose")
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("org.jetbrains.kotlin.plugin.compose")
+    // id("org.jetbrains.kotlin.plugin.compose") // Redundant if org.jetbrains.compose is used
 }
 
 android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "chat.simplex.app"
-        namespace = "chat.simplex.app"
+        applicationId = "com.qbit.chat"
+        namespace = "com.qbit.chat"
         minSdk = 26
         targetSdk = 35
         // !!!

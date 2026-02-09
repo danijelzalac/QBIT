@@ -1,4 +1,4 @@
-package chat.simplex.app
+package com.qbit.chat
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -21,7 +21,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.work.*
-import chat.simplex.app.model.NtfManager
+import com.qbit.chat.model.NtfManager
 import chat.simplex.common.AppLock
 import chat.simplex.common.helpers.requiresIgnoringBattery
 import chat.simplex.common.model.ChatController

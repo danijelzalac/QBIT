@@ -1,4 +1,4 @@
-package chat.simplex.app
+package com.qbit.chat
 
 import android.content.Context
 import android.content.Intent
@@ -10,6 +10,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.fragment.app.FragmentActivity
+import chat.simplex.app.SimplexApp
+import chat.simplex.app.SimplexService
+import chat.simplex.app.CallService
 import chat.simplex.app.model.NtfManager
 import chat.simplex.app.model.NtfManager.getUserIdFromIntent
 import chat.simplex.common.*
@@ -23,6 +26,19 @@ import chat.simplex.common.platform.*
 import chat.simplex.res.MR
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
+import androidx.compose.runtime.*
+import com.qbit.chat.views.CalendarCoverScreen
+import androidx.compose.material.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import dev.icerock.moko.resources.compose.painterResource
+
+object QbitLock {
+    var isUnlocked by mutableStateOf(false)
+}
 
 class MainActivity: FragmentActivity() {
   companion object {
@@ -56,9 +72,39 @@ class MainActivity: FragmentActivity() {
         WindowManager.LayoutParams.FLAG_SECURE
       )
     }
+    // QBIT: Force FLAG_SECURE always to protect against app switcher snapshots
+    window.setFlags(
+      WindowManager.LayoutParams.FLAG_SECURE,
+      WindowManager.LayoutParams.FLAG_SECURE
+    )
+    
     enableEdgeToEdge()
     setContent {
-      AppScreen()
+      // SECURITY: Root Entrypoint is ALWAYS Calendar Cover.
+      // Chat UI is only rendered if explicitly unlocked.
+      // This prevents UI flickering during startup.
+      if (QbitLock.isUnlocked) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AppScreen()
+            // QBIT: Quick Exit Button (Always visible when unlocked)
+            FloatingActionButton(
+                onClick = { QbitLock.isUnlocked = false },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 24.dp, bottom = 24.dp)
+                    .size(48.dp),
+                backgroundColor = Color(0xFFF5B301) // Warning Yellow
+            ) {
+                Icon(
+                    painter = painterResource(MR.images.ic_lock), 
+                    contentDescription = "Quick Exit",
+                    tint = Color.Black
+                )
+            }
+        }
+      } else {
+        CalendarCoverScreen(onUnlock = { QbitLock.isUnlocked = true })
+      }
     }
     SimplexApp.context.schedulePeriodicServiceRestartWorker()
     SimplexApp.context.schedulePeriodicWakeUp()
@@ -89,17 +135,23 @@ class MainActivity: FragmentActivity() {
   override fun onPause() {
     super.onPause()
     /**
-     * When new activity is created after a click on notification, the old one receives onPause before
-     * recreation but receives onStop after recreation. So using both (onPause and onStop) to prevent
-     * unwanted multiple auth dialogs from [runAuthenticate]
-     * */
+     * SECURITY: App Switcher Protection
+     * When the app loses focus or is paused, immediately lock to Cover.
+     * This ensures the Recent Apps snapshot shows the Calendar, not the Chat.
+     */
     AppLock.appWasHidden()
+    QbitLock.isUnlocked = false
   }
 
   override fun onStop() {
     super.onStop()
+    /**
+     * SECURITY: Background Protection
+     * Stop all media and lock the UI state.
+     */
     VideoPlayerHolder.stopAll()
     AppLock.appWasHidden()
+    QbitLock.isUnlocked = false
   }
 
   override fun onBackPressed() {

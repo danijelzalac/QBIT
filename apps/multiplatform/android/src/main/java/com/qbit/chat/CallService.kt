@@ -1,4 +1,4 @@
-package chat.simplex.app
+package com.qbit.chat
 
 import android.app.*
 import android.content.*
@@ -11,8 +11,8 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import chat.simplex.app.model.NtfManager.EndCallAction
-import chat.simplex.app.views.call.CallActivity
+import com.qbit.chat.model.NtfManager.EndCallAction
+import com.qbit.chat.views.call.CallActivity
 import chat.simplex.common.model.NotificationPreviewMode
 import chat.simplex.common.platform.*
 import chat.simplex.common.views.helpers.*

@@ -1,59 +1,22 @@
-package chat.simplex.app.views.call
+package com.qbit.chat.views.call
 
-import android.Manifest
-import android.app.*
-import android.content.*
-import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.graphics.Rect
-import android.os.*
-import android.util.Rational
-import android.view.*
-import androidx.activity.ComponentActivity
+import android.app.KeyguardManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
-import androidx.activity.trackPipAnimationHintView
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.*
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import chat.simplex.app.*
-import chat.simplex.app.R
-import chat.simplex.app.TAG
-import chat.simplex.app.model.NtfManager
-import chat.simplex.app.model.NtfManager.AcceptCallAction
-import chat.simplex.common.helpers.applyAppLocale
-import chat.simplex.common.model.*
-import chat.simplex.common.model.ChatController.appPrefs
-import chat.simplex.common.platform.*
-import chat.simplex.common.platform.chatModel
-import chat.simplex.common.ui.theme.*
-import chat.simplex.common.views.call.*
-import chat.simplex.common.views.helpers.*
-import chat.simplex.res.MR
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import dev.icerock.moko.resources.compose.stringResource
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import java.lang.ref.WeakReference
-import java.util.*
-import chat.simplex.common.platform.chatModel as m
+import androidx.compose.runtime.collectAsState
+import androidx.fragment.app.FragmentActivity
+import com.qbit.chat.MainActivity
+import com.qbit.chat.SimplexApp
+import com.qbit.chat.model.NtfManager.AcceptCallAction
+import chat.simplex.common.platform.Log
+import chat.simplex.common.views.call.ActiveCallView
+import chat.simplex.common.views.call.IncomingCallView
 
-class CallActivity: ComponentActivity(), ServiceConnection {
+class CallActivity: FragmentActivity() {
 
   var boundService: CallService? = null
 

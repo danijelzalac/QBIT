@@ -100,6 +100,15 @@ fun SettingsLayout(
   ColumnWithScrollBar {
     AppBarTitle(stringResource(MR.strings.your_settings))
 
+    SectionView("QBIT Settings") {
+      PreferenceToggleWithIcon("Cover Screen", painterResource(MR.images.ic_lock), checked = true, onChange = {})
+      PreferenceToggleWithIcon("Post-Quantum Mode", painterResource(MR.images.ic_bolt), checked = false, onChange = {})
+      PreferenceToggleWithIcon("Tor/I2P Only", painterResource(MR.images.ic_wifi_tethering), checked = false, onChange = {})
+      PreferenceToggleWithIcon("Dead-drop Mode", painterResource(MR.images.ic_report_filled), checked = false, onChange = {})
+      PreferenceToggleWithIcon("Notifications: Silent", painterResource(MR.images.ic_bolt_off), checked = true, onChange = {})
+    }
+    SectionDividerSpaced()
+
     SectionView(stringResource(MR.strings.settings_section_title_settings)) {
       SettingsActionItem(painterResource(if (notificationsMode.value == NotificationsMode.OFF) MR.images.ic_bolt_off else MR.images.ic_bolt), stringResource(MR.strings.notifications), showSettingsModal { NotificationsSettingsView(it) }, disabled = stopped)
       SettingsActionItem(painterResource(MR.images.ic_wifi_tethering), stringResource(MR.strings.network_and_servers), showCustomModal { _, close -> NetworkAndServersView(close) }, disabled = stopped)

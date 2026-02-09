@@ -623,16 +623,16 @@ val DEFAULT_END_MODAL_WIDTH = 388.dp
 val DEFAULT_MAX_IMAGE_WIDTH = 500.dp
 
 val DarkColorPalette = darkColors(
-  primary = SimplexBlue,  // If this value changes also need to update #0088ff in string resource files
-  primaryVariant = SimplexBlue,
-  secondary = HighOrLowlight,
-  secondaryVariant = DarkGray,
+  primary = Color(0xFF00F0FF),  // QBIT Accent
+  primaryVariant = Color(0xFF00F0FF),
+  secondary = Color(0xFF9AA3AD), // QBIT Secondary Text
+  secondaryVariant = Color(0xFF1A2028), // QBIT Border
 //  background = Color.Black,
-  surface = Color(0xFF222222),
-//  background = Color(0xFF121212),
+  surface = Color(0xFF0E1218), // QBIT Surface
+  background = Color(0xFF05070A), // QBIT Background
   error = Color.Red,
-  onBackground = Color(0xFFFFFBFA),
-  onSurface = Color(0xFFFFFBFA),
+  onBackground = Color(0xFFE6E8EB), // QBIT Primary Text
+  onSurface = Color(0xFFE6E8EB),
 //  onError: Color = Color.Black,
 )
 val DarkColorPaletteApp = AppColors(
@@ -667,14 +667,14 @@ val LightColorPaletteApp = AppColors(
 )
 
 val SimplexColorPalette = darkColors(
-  primary = Color(0xFF70F0F9),  // If this value changes also need to update #0088ff in string resource files
-  primaryVariant = Color(0xFF1298A5),
-  secondary = HighOrLowlight,
-  secondaryVariant = Color(0xFF2C464D),
-  background = Color(0xFF111528),
+  primary = Color(0xFF00F0FF),  // QBIT Accent
+  primaryVariant = Color(0xFF00F0FF),
+  secondary = Color(0xFF9AA3AD),
+  secondaryVariant = Color(0xFF1A2028),
+  background = Color(0xFF05070A),
   //  surface = Color.Black,
   //  background = Color(0xFF121212),
-  surface = Color(0xFF121C37),
+  surface = Color(0xFF0E1218),
   error = Color.Red,
 //  onBackground = Color(0xFFFFFBFA),
 //  onSurface = Color(0xFFFFFBFA),

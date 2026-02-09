@@ -1,4 +1,4 @@
-package chat.simplex.app.model
+package com.qbit.chat.model
 
 import android.app.*
 import android.app.TaskStackBuilder
@@ -12,10 +12,10 @@ import android.net.Uri
 import android.view.Display
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.core.app.*
-import chat.simplex.app.*
-import chat.simplex.app.TAG
-import chat.simplex.app.views.call.CallActivity
-import chat.simplex.app.views.call.getKeyguardManager
+import com.qbit.chat.*
+import com.qbit.chat.TAG
+import com.qbit.chat.views.call.CallActivity
+import com.qbit.chat.views.call.getKeyguardManager
 import chat.simplex.common.views.helpers.*
 import chat.simplex.common.model.*
 import chat.simplex.common.platform.*

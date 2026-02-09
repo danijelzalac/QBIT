@@ -1,49 +1,16 @@
-package chat.simplex.app
+package com.qbit.chat
 
 import android.content.Context
-import android.util.Log
 import androidx.work.*
-import chat.simplex.app.SimplexService.Companion.showPassphraseNotification
-import chat.simplex.common.model.ChatController
-import chat.simplex.common.platform.*
-import chat.simplex.common.views.helpers.DBMigrationResult
-import chat.simplex.common.views.helpers.DatabaseUtils
-import kotlinx.coroutines.*
-import java.util.Date
+import chat.simplex.common.platform.Log
+import chat.simplex.common.helpers.getWorkManagerInstance
+import chat.simplex.common.model.*
+import chat.simplex.common.platform.NtfManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-object MessagesFetcherWorker {
-  private const val UNIQUE_WORK_TAG = BuildConfig.APPLICATION_ID + ".UNIQUE_MESSAGES_FETCHER"
-
-  fun scheduleWork(intervalSec: Int = 600, durationSec: Int = 60) {
-    val initialDelaySec = intervalSec.toLong()
-    Log.d(TAG, "Worker: scheduling work to run at ${Date(System.currentTimeMillis() + initialDelaySec * 1000)} for $durationSec sec")
-    val periodicWorkRequest = OneTimeWorkRequest.Builder(MessagesFetcherWork::class.java)
-      .setInitialDelay(initialDelaySec, TimeUnit.SECONDS)
-      .setInputData(
-        Data.Builder()
-          .putInt(MessagesFetcherWork.INPUT_DATA_INTERVAL, intervalSec)
-          .putInt(MessagesFetcherWork.INPUT_DATA_DURATION, durationSec)
-          .build()
-      )
-      .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-      .build()
-
-    SimplexApp.context.getWorkManagerInstance().enqueueUniqueWork(UNIQUE_WORK_TAG, ExistingWorkPolicy.REPLACE, periodicWorkRequest)
-  }
-
-  fun cancelAll(withLog: Boolean = true) {
-    if (withLog) {
-      Log.d(TAG, "Worker: canceled all tasks")
-    }
-    SimplexApp.context.getWorkManagerInstance().cancelUniqueWork(UNIQUE_WORK_TAG)
-  }
-}
-
-class MessagesFetcherWork(
-  context: Context,
-  workerParams: WorkerParameters
-): CoroutineWorker(context, workerParams) {
+class MessagesFetcherWorker(appContext: Context, workerParams: WorkerParameters): CoroutineWorker(appContext, workerParams) {
   companion object {
     const val INPUT_DATA_INTERVAL = "interval"
     const val INPUT_DATA_DURATION = "duration"

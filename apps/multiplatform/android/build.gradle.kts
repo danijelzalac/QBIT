@@ -256,6 +256,34 @@ tasks {
         }
     }
 
+    fun nightlyDesktopTargetFile(): File {
+        val desktopDir = File(System.getProperty("user.home"), "Desktop")
+        val targetDir = if (desktopDir.exists()) desktopDir else File(System.getProperty("user.home"))
+        return File(targetDir, "QBitNightly.apk")
+    }
+
+    val copyNightlyApkToDesktopDebug by registering {
+        dependsOn(copyNightlyApkDebug)
+        doLast {
+            val apkDir = layout.buildDirectory.dir("outputs/apk/debug").get().asFile
+            val src = File(apkDir, "QBitNightly.apk")
+            if (src.exists()) {
+                src.copyTo(nightlyDesktopTargetFile(), overwrite = true)
+            }
+        }
+    }
+
+    val copyNightlyApkToDesktopRelease by registering {
+        dependsOn(copyNightlyApkRelease)
+        doLast {
+            val apkDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+            val src = File(apkDir, "QBitNightly.apk")
+            if (src.exists()) {
+                src.copyTo(nightlyDesktopTargetFile(), overwrite = true)
+            }
+        }
+    }
+
     matching { it.name == "assembleDebug" }.configureEach {
         finalizedBy(copyNightlyApkDebug)
     }

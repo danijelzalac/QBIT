@@ -1,5 +1,6 @@
 package com.qbit.chat.views
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,17 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
-
-import androidx.compose.ui.platform.LocalUriHandler
-// QBIT: Removed developer credit from UI for stealth compliance
-// import androidx.compose.ui.platform.LocalUriHandler
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 
 @Composable
 fun CalendarCoverScreen(onUnlock: () -> Unit) {
     var showAddEventDialog by remember { mutableStateOf(false) }
     var currentMonth by remember { mutableStateOf("September 2026") }
-    // val uriHandler = LocalUriHandler.current
 
     // Calendar Light Theme
     MaterialTheme(
@@ -124,11 +123,6 @@ fun CalendarCoverScreen(onUnlock: () -> Unit) {
         )
     }
 }
-
-import android.content.Context
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {

@@ -3,25 +3,25 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.serialization")
     // id("org.jetbrains.kotlin.plugin.compose") // Redundant if org.jetbrains.compose is used
 }
 
 android {
+    namespace = "com.qbit.chat"
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.qbit.chat"
-        namespace = "com.qbit.chat"
         minSdk = 26
         targetSdk = 35
         // !!!
         // skip version code after release to F-Droid, as it uses two version codes
         versionCode = (extra["android.version_code"] as String).toInt()
         versionName = extra["android.version_name"] as String
-
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -142,6 +142,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.lifecycle:lifecycle-process:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     val workVersion = "2.9.1"
     implementation("androidx.work:work-runtime-ktx:$workVersion")
     implementation("androidx.work:work-multiprocess:$workVersion")
@@ -213,13 +214,54 @@ tasks {
             }
 
             if (project.properties["android.injected.signing.key.alias"] != null && buildType == "release") {
-                File(outputDir, "android-release.apk").renameTo(File(outputDir, "simplex.apk"))
-                File(outputDir, "android-armeabi-v7a-release.apk").renameTo(File(outputDir, "simplex-armv7a.apk"))
-                File(outputDir, "android-arm64-v8a-release.apk").renameTo(File(outputDir, "simplex.apk"))
+                File(outputDir, "android-release.apk").renameTo(File(outputDir, "QBitNightly.apk"))
+                File(outputDir, "android-armeabi-v7a-release.apk").renameTo(File(outputDir, "QBitNightly-armv7a.apk"))
+                File(outputDir, "android-arm64-v8a-release.apk").renameTo(File(outputDir, "QBitNightly-arm64.apk"))
             }
             // View all gradle properties set
             // project.properties.each { k, v -> println "$k -> $v" }
         }
+    }
+
+    fun copyNightlyApks(apkDir: File, variant: String) {
+        fun copy(from: File, toName: String) {
+            from.copyTo(File(apkDir, toName), overwrite = true)
+        }
+
+        val universal = File(apkDir, "android-$variant.apk")
+        val arm64 = File(apkDir, "android-arm64-v8a-$variant.apk")
+        val armv7a = File(apkDir, "android-armeabi-v7a-$variant.apk")
+
+        when {
+            universal.exists() -> copy(universal, "QBitNightly.apk")
+            arm64.exists() -> copy(arm64, "QBitNightly.apk")
+            armv7a.exists() -> copy(armv7a, "QBitNightly.apk")
+        }
+
+        if (arm64.exists()) copy(arm64, "QBitNightly-arm64.apk")
+        if (armv7a.exists()) copy(armv7a, "QBitNightly-armv7a.apk")
+    }
+
+    val copyNightlyApkDebug by registering {
+        dependsOn("assembleDebug")
+        doLast {
+            copyNightlyApks(layout.buildDirectory.dir("outputs/apk/debug").get().asFile, "debug")
+        }
+    }
+
+    val copyNightlyApkRelease by registering {
+        dependsOn("assembleRelease")
+        doLast {
+            copyNightlyApks(layout.buildDirectory.dir("outputs/apk/release").get().asFile, "release")
+        }
+    }
+
+    matching { it.name == "assembleDebug" }.configureEach {
+        finalizedBy(copyNightlyApkDebug)
+    }
+
+    matching { it.name == "assembleRelease" }.configureEach {
+        finalizedBy(copyNightlyApkRelease)
     }
 
     // Don"t do anything if no compression is needed

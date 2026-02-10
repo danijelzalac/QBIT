@@ -63,7 +63,7 @@ object NtfManager {
       .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
       .build()
     val soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/raw/ring_once")
-    Log.d(TAG, "callNotificationChannel sound: $soundUri")
+    if (BuildConfig.DEBUG) Log.d(TAG, "callNotificationChannel sound: $soundUri")
     callChannel.setSound(soundUri, attrs)
     callChannel.enableVibration(true)
     // the numbers below are explained here: https://developer.android.com/reference/android/os/Vibrator
@@ -101,7 +101,7 @@ object NtfManager {
 
   fun displayNotification(user: UserLike, chatId: String, displayName: String, msgText: String, image: String? = null, actions: List<NotificationAction> = emptyList()) {
     if (!user.showNotifications) return
-    Log.d(TAG, "notifyMessageReceived $chatId")
+    if (BuildConfig.DEBUG) Log.d(TAG, "notifyMessageReceived $chatId")
     val now = Clock.System.now().toEpochMilliseconds()
     val recentNotification = (now - prevNtfTime.getOrDefault(user.userId to chatId, 0) < msgNtfTimeoutMs)
     prevNtfTime[user.userId to chatId] = now
@@ -159,7 +159,7 @@ object NtfManager {
 
   fun notifyCallInvitation(invitation: RcvCallInvitation): Boolean {
     val keyguardManager = getKeyguardManager(context)
-    Log.d(
+    if (BuildConfig.DEBUG) Log.d(
       TAG,
       "notifyCallInvitation pre-requests: " +
           "keyguard locked ${keyguardManager.isKeyguardLocked}, " +
@@ -168,7 +168,7 @@ object NtfManager {
     )
     if (isAppOnForeground) return false
     val contactId = invitation.contact.id
-    Log.d(TAG, "notifyCallInvitation $contactId")
+    if (BuildConfig.DEBUG) Log.d(TAG, "notifyCallInvitation $contactId")
     val image = invitation.contact.image
     val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
     val screenOff = displayManager.displays.all { it.state != Display.STATE_ON }
@@ -269,7 +269,7 @@ object NtfManager {
   fun hasNotificationsForChat(chatId: String): Boolean = manager.activeNotifications.any { it.id == chatId.hashCode() }
 
   private fun chatPendingIntent(intentAction: String, userId: Long?, chatId: String? = null, broadcast: Boolean = false): PendingIntent {
-    Log.d(TAG, "chatPendingIntent for $intentAction")
+    if (BuildConfig.DEBUG) Log.d(TAG, "chatPendingIntent for $intentAction")
     val uniqueInt = (System.currentTimeMillis() and 0xfffffff).toInt()
     var intent = Intent(context, if (!broadcast) MainActivity::class.java else NtfActionReceiver::class.java)
       .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -323,7 +323,7 @@ object NtfManager {
         }
 
         else -> {
-          Log.e(TAG, "Unknown action. Make sure you provide action from NotificationAction enum")
+          if (BuildConfig.DEBUG) Log.e(TAG, "Unknown action. Make sure you provide action from NotificationAction enum")
         }
       }
     }

@@ -31,7 +31,7 @@ android {
             }
         }
         manifestPlaceholders["app_name"] = "@string/app_name"
-        manifestPlaceholders["provider_authorities"] = "chat.simplex.app.provider"
+        manifestPlaceholders["provider_authorities"] = "com.qbit.chat.provider"
         manifestPlaceholders["extract_native_libs"] = rootProject.extra["compression.level"] as Int != 0
     }
 
@@ -41,10 +41,12 @@ android {
             isDebuggable = rootProject.extra["enable_debuggable"] as Boolean
             manifestPlaceholders["app_name"] = rootProject.extra["app.name"] as String
             // Provider can"t be the same for different apps on the same device
-            manifestPlaceholders["provider_authorities"] = "chat.simplex.app${rootProject.extra["application_id.suffix"]}.provider"
+            manifestPlaceholders["provider_authorities"] = "com.qbit.chat${rootProject.extra["application_id.suffix"]}.provider"
         }
         release {
-            isMinifyEnabled = false
+            // QBIT: Quality Gate - Enable Minify/Shrink
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -63,11 +65,13 @@ android {
             path(File("../common/src/commonMain/cpp/android/CMakeLists.txt"))
         }
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
+    // QBIT: Quality Gate - Enable Minify/Shrink
+    // Removed duplicate block that disabled minify
+    // buildTypes {
+    //    getByName("release") {
+    //        isMinifyEnabled = false
+    //    }
+    // }
     buildFeatures {
         buildConfig = true
     }

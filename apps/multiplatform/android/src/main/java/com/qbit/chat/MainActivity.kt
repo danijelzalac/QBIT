@@ -66,7 +66,7 @@ class MainActivity: FragmentActivity() {
       processExternalIntent(intent)
     }
     if (ChatController.appPrefs.privacyProtectScreen.get()) {
-      Log.d(TAG, "onCreate: set FLAG_SECURE")
+      if (BuildConfig.DEBUG) Log.d(TAG, "onCreate: set FLAG_SECURE")
       window.setFlags(
         WindowManager.LayoutParams.FLAG_SECURE,
         WindowManager.LayoutParams.FLAG_SECURE
@@ -189,19 +189,19 @@ fun processNotificationIntent(intent: Intent?) {
   when (intent?.action) {
     NtfManager.OpenChatAction -> {
       val chatId = intent.getStringExtra("chatId")
-      Log.d(TAG, "processNotificationIntent: OpenChatAction $chatId")
+      if (BuildConfig.DEBUG) Log.d(TAG, "processNotificationIntent: OpenChatAction $chatId")
       if (chatId != null) {
         ntfManager.openChatAction(userId, chatId)
       }
     }
     NtfManager.ShowChatsAction -> {
-      Log.d(TAG, "processNotificationIntent: ShowChatsAction")
+      if (BuildConfig.DEBUG) Log.d(TAG, "processNotificationIntent: ShowChatsAction")
       ntfManager.showChatsAction(userId)
     }
     NtfManager.AcceptCallAction -> {
       val chatId = intent.getStringExtra("chatId")
       if (chatId == null || chatId == "") return
-      Log.d(TAG, "processNotificationIntent: AcceptCallAction $chatId")
+      if (BuildConfig.DEBUG) Log.d(TAG, "processNotificationIntent: AcceptCallAction $chatId")
       ntfManager.acceptCallAction(chatId)
     }
   }
@@ -259,7 +259,7 @@ fun processExternalIntent(intent: Intent?) {
       // Close active chat and show a list of chats
       chatModel.chatId.value = null
       chatModel.clearOverlays.value = true
-      Log.e(TAG, "ACTION_SEND_MULTIPLE ${intent.type}")
+      if (BuildConfig.DEBUG) Log.e(TAG, "ACTION_SEND_MULTIPLE ${intent.type}")
       when {
         isMediaIntent(intent) -> {
           val uris = intent.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM) as? List<Uri>

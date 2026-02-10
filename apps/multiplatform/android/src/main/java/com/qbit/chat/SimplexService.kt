@@ -45,17 +45,17 @@ class SimplexService: Service() {
   private var serviceNotification: Notification? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.d(TAG, "onStartCommand startId: $startId")
+    if (BuildConfig.DEBUG) Log.d(TAG, "onStartCommand startId: $startId")
     isServiceStarting = false
     if (intent != null) {
       val action = intent.action
-      Log.d(TAG, "intent action $action")
+      if (BuildConfig.DEBUG) Log.d(TAG, "intent action $action")
       when (action) {
         Action.START.name -> startService()
-        else -> Log.e(TAG, "No action in the intent")
+        else -> if (BuildConfig.DEBUG) Log.e(TAG, "No action in the intent")
       }
     } else {
-      Log.d(TAG, "null intent. Probably restarted by the system.")
+      if (BuildConfig.DEBUG) Log.d(TAG, "null intent. Probably restarted by the system.")
     }
     ServiceCompat.startForeground(this, SIMPLEX_SERVICE_ID, createNotificationIfNeeded(), foregroundServiceType())
     return START_STICKY // to restart if killed
@@ -63,7 +63,7 @@ class SimplexService: Service() {
 
   override fun onCreate() {
     super.onCreate()
-    Log.d(TAG, "Simplex service created")
+    if (BuildConfig.DEBUG) Log.d(TAG, "Simplex service created")
     createNotificationIfNeeded()
     ServiceCompat.startForeground(this, SIMPLEX_SERVICE_ID, createNotificationIfNeeded(), foregroundServiceType())
     /**
@@ -85,14 +85,14 @@ class SimplexService: Service() {
   }
 
   override fun onDestroy() {
-    Log.d(TAG, "Simplex service destroyed")
+    if (BuildConfig.DEBUG) Log.d(TAG, "Simplex service destroyed")
     try {
       wakeLock?.let {
         while (it.isHeld) it.release() // release all, in case acquired more than once
       }
       wakeLock = null
     } catch (e: Exception) {
-      Log.d(TAG, "Exception while releasing wakelock: ${e.message}")
+      if (BuildConfig.DEBUG) Log.d(TAG, "Exception while releasing wakelock: ${e.message}")
     }
     isServiceStarting = false
     isServiceStarted = false
@@ -126,7 +126,7 @@ class SimplexService: Service() {
   }
 
   private fun startService() {
-    Log.d(TAG, "SimplexService startService")
+    if (BuildConfig.DEBUG) Log.d(TAG, "SimplexService startService")
     if (wakeLock != null || isCheckingNewMessages) return
     val self = this
     isCheckingNewMessages = true
@@ -134,10 +134,10 @@ class SimplexService: Service() {
       val chatController = ChatController
       waitDbMigrationEnds(chatController)
       try {
-        Log.w(TAG, "Starting foreground service")
+        if (BuildConfig.DEBUG) Log.w(TAG, "Starting foreground service")
         val chatDbStatus = chatController.chatModel.chatDbStatus.value
         if (chatDbStatus != DBMigrationResult.OK) {
-          Log.w(chat.simplex.app.TAG, "SimplexService: problem with the database: $chatDbStatus")
+          if (BuildConfig.DEBUG) Log.w(chat.simplex.app.TAG, "SimplexService: problem with the database: $chatDbStatus")
           showPassphraseNotification(chatDbStatus)
           androidAppContext.getWorkManagerInstance().cancelUniqueWork(SimplexService.SERVICE_START_WORKER_WORK_NAME_PERIODIC)
           safeStopService()
@@ -233,12 +233,12 @@ class SimplexService: Service() {
   // restart on reboot
   class StartReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-      Log.d(TAG, "StartReceiver: onReceive called")
+      if (BuildConfig.DEBUG) Log.d(TAG, "StartReceiver: onReceive called")
       scheduleStart(context)
     }
     companion object {
       fun toggleReceiver(enable: Boolean) {
-        Log.d(TAG, "StartReceiver: toggleReceiver enabled: $enable")
+        if (BuildConfig.DEBUG) Log.d(TAG, "StartReceiver: toggleReceiver enabled: $enable")
         val component = ComponentName(BuildConfig.APPLICATION_ID, StartReceiver::class.java.name)
         SimplexApp.context.packageManager.setComponentEnabledSetting(
           component,
@@ -252,7 +252,7 @@ class SimplexService: Service() {
   // restart on destruction
   class AutoRestartReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-      Log.d(TAG, "AutoRestartReceiver: onReceive called")
+      if (BuildConfig.DEBUG) Log.d(TAG, "AutoRestartReceiver: onReceive called")
       scheduleStart(context)
     }
   }
@@ -262,14 +262,14 @@ class SimplexService: Service() {
     override fun onReceive(context: Context, intent: Intent) {
       // If notification service is enabled and battery optimization is disabled, restart the service on app update
       if (SimplexApp.context.allowToStartServiceAfterAppExit()) {
-        Log.d(TAG, "AppUpdateReceiver: onReceive called")
+        if (BuildConfig.DEBUG) Log.d(TAG, "AppUpdateReceiver: onReceive called")
         scheduleStart(context)
       }
     }
 
     companion object {
       fun toggleReceiver(enable: Boolean) {
-        Log.d(TAG, "AppUpdateReceiver: toggleReceiver enabled: $enable")
+        if (BuildConfig.DEBUG) Log.d(TAG, "AppUpdateReceiver: toggleReceiver enabled: $enable")
         val component = ComponentName(BuildConfig.APPLICATION_ID, AppUpdateReceiver::class.java.name)
         SimplexApp.context.packageManager.setComponentEnabledSetting(
           component,
@@ -284,11 +284,11 @@ class SimplexService: Service() {
     override suspend fun doWork(): Result {
       val id = this.id
       if (context.applicationContext !is Application) {
-        Log.d(TAG, "ServiceStartWorker: Failed, no application found (work ID: $id)")
+        if (BuildConfig.DEBUG) Log.d(TAG, "ServiceStartWorker: Failed, no application found (work ID: $id)")
         return Result.failure()
       }
       if (getServiceState(context) == ServiceState.STARTED) {
-        Log.d(TAG, "ServiceStartWorker: Starting foreground service (work ID: $id)")
+        if (BuildConfig.DEBUG) Log.d(TAG, "ServiceStartWorker: Starting foreground service (work ID: $id)")
         start()
       }
       return Result.success()
@@ -325,7 +325,7 @@ class SimplexService: Service() {
     private var stopAfterStart = false
 
     fun scheduleStart(context: Context) {
-      Log.d(TAG, "Enqueuing work to start subscriber service")
+      if (BuildConfig.DEBUG) Log.d(TAG, "Enqueuing work to start subscriber service")
       val workManager = context.getWorkManagerInstance()
       val startServiceRequest = OneTimeWorkRequest.Builder(ServiceStartWorker::class.java).build()
       workManager.enqueueUniqueWork(WORK_NAME_ONCE, ExistingWorkPolicy.KEEP, startServiceRequest) // Unique avoids races!
@@ -347,10 +347,10 @@ class SimplexService: Service() {
 
     private suspend fun serviceAction(action: Action) {
       if (!NtfManager.areNotificationsEnabledInSystem()) {
-        Log.d(TAG, "SimplexService serviceAction: ${action.name}. Notifications are not enabled in OS yet, not starting service")
+        if (BuildConfig.DEBUG) Log.d(TAG, "SimplexService serviceAction: ${action.name}. Notifications are not enabled in OS yet, not starting service")
         return
       }
-      Log.d(TAG, "SimplexService serviceAction: ${action.name}")
+      if (BuildConfig.DEBUG) Log.d(TAG, "SimplexService serviceAction: ${action.name}")
       withContext(Dispatchers.IO) {
         Intent(androidAppContext, SimplexService::class.java).also {
           it.action = action.name
@@ -430,7 +430,7 @@ class SimplexService: Service() {
     fun showBackgroundServiceNoticeIfNeeded(showOffAlert: Boolean = true) {
       val appPrefs = ChatController.appPrefs
       val mode = appPrefs.notificationsMode.get()
-      Log.d(TAG, "showBackgroundServiceNoticeIfNeeded")
+      if (BuildConfig.DEBUG) Log.d(TAG, "showBackgroundServiceNoticeIfNeeded")
       // Nothing to do if mode is OFF. Can be selected on on-boarding stage
       if (mode == NotificationsMode.OFF) return
 
@@ -714,7 +714,7 @@ class SimplexService: Service() {
         try {
           androidAppContext.startActivity(this)
         } catch (e: ActivityNotFoundException) {
-          Log.e(TAG, e.stackTraceToString())
+          if (BuildConfig.DEBUG) Log.e(TAG, e.stackTraceToString())
         }
       }
     }

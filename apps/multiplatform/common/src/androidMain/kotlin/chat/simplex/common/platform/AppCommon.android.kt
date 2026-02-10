@@ -25,8 +25,16 @@ val defaultLocale: Locale = Locale.getDefault()
 
 actual fun isAppVisibleAndFocused(): Boolean = isAppOnForeground
 
-@SuppressLint("StaticFieldLeak")
-lateinit var androidAppContext: Context
+// QBIT: Fixed memory leak - WeakReference for Context
+// lateinit var androidAppContext: Context 
+// private set
+private var androidAppContextRef: java.lang.ref.WeakReference<Context>? = null
+val androidAppContext: Context
+  get() = androidAppContextRef?.get() ?: throw IllegalStateException("Context released or not initialized")
+
+fun setAndroidAppContext(context: Context) {
+  androidAppContextRef = java.lang.ref.WeakReference(context.applicationContext)
+}
 var mainActivity: WeakReference<FragmentActivity> = WeakReference(null)
 var callActivity: WeakReference<ComponentActivity> = WeakReference(null)
 

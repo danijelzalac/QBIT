@@ -25,3 +25,4 @@ actual class GlobalExceptionsHandler: Thread.UncaughtExceptionHandler {
     Log.e(TAG, "App crashed, thread name: " + thread.name + ", exception: " + e.stackTraceToString())
   }
 }
+

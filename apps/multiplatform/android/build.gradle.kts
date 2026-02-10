@@ -115,16 +115,16 @@ android {
     )
     ndkVersion = "23.1.7779620"
     if (isBundle) {
-        defaultConfig.ndk.abiFilters("arm64-v8a", "armeabi-v7a")
+        defaultConfig.ndk.abiFilters("arm64-v8a")
     } else {
         splits {
             abi {
                 isEnable = true
                 reset()
                 if (isRelease) {
-                    include("arm64-v8a", "armeabi-v7a")
+                    include("arm64-v8a")
                 } else {
-                    include("arm64-v8a", "armeabi-v7a")
+                    include("arm64-v8a")
                     isUniversalApk = false
                 }
             }
@@ -284,12 +284,38 @@ tasks {
         }
     }
 
+    val copyNightlyApkToRootDebug by registering {
+        dependsOn(copyNightlyApkDebug)
+        doLast {
+            val apkDir = layout.buildDirectory.dir("outputs/apk/debug").get().asFile
+            val src = File(apkDir, "QBitNightly.apk")
+            if (src.exists()) {
+                src.copyTo(File(rootProject.rootDir, "QBitNightly.apk"), overwrite = true)
+            }
+        }
+    }
+
+    val copyNightlyApkToRootRelease by registering {
+        dependsOn(copyNightlyApkRelease)
+        doLast {
+            val apkDir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+            val src = File(apkDir, "QBitNightly.apk")
+            if (src.exists()) {
+                src.copyTo(File(rootProject.rootDir, "QBitNightly.apk"), overwrite = true)
+            }
+        }
+    }
+
     matching { it.name == "assembleDebug" }.configureEach {
         finalizedBy(copyNightlyApkDebug)
+        finalizedBy(copyNightlyApkToDesktopDebug)
+        finalizedBy(copyNightlyApkToRootDebug)
     }
 
     matching { it.name == "assembleRelease" }.configureEach {
         finalizedBy(copyNightlyApkRelease)
+        finalizedBy(copyNightlyApkToDesktopRelease)
+        finalizedBy(copyNightlyApkToRootRelease)
     }
 
     // Don"t do anything if no compression is needed

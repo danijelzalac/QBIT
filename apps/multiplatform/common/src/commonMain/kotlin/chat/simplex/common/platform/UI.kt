@@ -24,3 +24,13 @@ fun registerGlobalErrorHandler() {
 expect class GlobalExceptionsHandler(): Thread.UncaughtExceptionHandler {
   override fun uncaughtException(thread: Thread, e: Throwable)
 }
+
+/**
+ * QBIT: Callback holder for opening the Security Settings screen.
+ * Android module registers the actual implementation at startup.
+ */
+object QbitSecuritySettingsProvider {
+    var openSecuritySettings: @Composable (() -> Unit) -> Unit = { close -> close() }
+}
+
+

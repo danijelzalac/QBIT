@@ -1,5 +1,6 @@
 package chat.simplex.common.views.chat
 
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
@@ -1110,9 +1111,9 @@ fun BoxScope.ChatInfoToolbar(
                             scope.launch {
                                 withBGApi {
                                     if (chatInfo is ChatInfo.Direct) {
-                                        chatModel.controller.apiDeleteContact(chatInfo.remoteHostId, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
+                                        chatModel.controller.apiDeleteContact(chatModel.currentRemoteHost.value?.remoteHostId, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
                                     } else if (chatInfo is ChatInfo.Group) {
-                                        chatModel.controller.apiDeleteChat(chatInfo.remoteHostId, ChatType.Group, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
+                                        // chatModel.controller.apiDeleteChat(chatInfo.group.remoteHostId, ChatType.Group, chatInfo.apiId, ChatDeleteMode.Full(notify = false))
                                     }
                                     withContext(Dispatchers.Main) {
                                         chatModel.chatId.value = null

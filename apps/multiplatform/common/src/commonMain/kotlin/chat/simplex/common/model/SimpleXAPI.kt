@@ -352,8 +352,8 @@ class AppPreferences {
     )
 
   companion object {
-    const val SHARED_PREFS_ID = "chat.simplex.app.SIMPLEX_APP_PREFS"
-    internal const val SHARED_PREFS_THEMES_ID = "chat.simplex.app.THEMES"
+    const val SHARED_PREFS_ID = "com.qbit.chat.APP_PREFS"
+    internal const val SHARED_PREFS_THEMES_ID = "com.qbit.chat.THEMES"
     private const val SHARED_PREFS_AUTO_RESTART_WORKER_VERSION = "AutoRestartWorkerVersion"
     private const val SHARED_PREFS_RUN_SERVICE_IN_BACKGROUND = "RunServiceInBackground"
     private const val SHARED_PREFS_NOTIFICATIONS_MODE = "NotificationsMode"

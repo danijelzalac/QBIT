@@ -29,7 +29,9 @@ The source code for **QBIT** (the forked SimpleX Chat) is fully configured on yo
 
 ## WHAT IS INCLUDED
 This source code includes all the QBIT features implemented:
-*   **Stealth Calendar Cover**: App launches as a Calendar.
-*   **PIN Unlock**: Enter `2026` in "Add Event" to open Chat.
+*   **Stealth Calendar Cover**: App launches as a Calendar with dynamic month navigation.
+*   **PIN Unlock**: User sets their own code on first launch. Enter it in "Add Event" to open Chat.
+*   **Decoy Code**: Optional secondary code that dismisses dialog with "Event saved" (configurable in settings).
 *   **Erase Session**: Red trash icon in chat to wipe conversation locally.
 *   **Dark Theme**: Custom QBIT dark/cyan theme.
+*   **Security Settings**: Change unlock/decoy codes from within the app.

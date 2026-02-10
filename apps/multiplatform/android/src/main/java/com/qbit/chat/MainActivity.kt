@@ -28,6 +28,10 @@ import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import androidx.compose.runtime.*
 import com.qbit.chat.views.CalendarCoverScreen
+import com.qbit.chat.views.PinSetupScreen
+import com.qbit.chat.views.SecuritySettingsScreen
+import com.qbit.chat.security.PinManager
+import chat.simplex.common.platform.QbitSecuritySettingsProvider
 import androidx.compose.material.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
@@ -38,6 +42,7 @@ import dev.icerock.moko.resources.compose.painterResource
 
 object QbitLock {
     var isUnlocked by mutableStateOf(false)
+    var needsSetup by mutableStateOf(false)
 }
 
 class MainActivity: FragmentActivity() {
@@ -77,33 +82,53 @@ class MainActivity: FragmentActivity() {
       WindowManager.LayoutParams.FLAG_SECURE,
       WindowManager.LayoutParams.FLAG_SECURE
     )
+
+    // QBIT: Check if PIN needs to be configured (first run)
+    QbitLock.needsSetup = !PinManager.isPinConfigured(this)
+    
+    // QBIT: Register SecuritySettingsScreen as the callback for common module
+    QbitSecuritySettingsProvider.openSecuritySettings = { close ->
+        SecuritySettingsScreen(onBack = close)
+    }
     
     enableEdgeToEdge()
     setContent {
-      // SECURITY: Root Entrypoint is ALWAYS Calendar Cover.
-      // Chat UI is only rendered if explicitly unlocked.
-      // This prevents UI flickering during startup.
-      if (QbitLock.isUnlocked) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AppScreen()
-            // QBIT: Quick Exit Button (Always visible when unlocked)
-            FloatingActionButton(
-                onClick = { QbitLock.isUnlocked = false },
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 24.dp, bottom = 24.dp)
-                    .size(48.dp),
-                backgroundColor = Color(0xFFF5B301) // Warning Yellow
-            ) {
-                Icon(
-                    painter = painterResource(MR.images.ic_lock), 
-                    contentDescription = "Quick Exit",
-                    tint = Color.Black
-                )
+      // QBIT App Flow:
+      // 1. First run (no PIN configured) → PinSetupScreen
+      // 2. Normal run → CalendarCoverScreen → PIN unlock → AppScreen
+      when {
+        QbitLock.needsSetup -> {
+          // First-run: User MUST set their own PIN before anything else
+          PinSetupScreen(
+            isChangeMode = false,
+            onComplete = {
+              QbitLock.needsSetup = false
             }
+          )
         }
-      } else {
-        CalendarCoverScreen(onUnlock = { QbitLock.isUnlocked = true })
+        QbitLock.isUnlocked -> {
+          Box(modifier = Modifier.fillMaxSize()) {
+              AppScreen()
+              // QBIT: Quick Exit Button (Always visible when unlocked)
+              FloatingActionButton(
+                  onClick = { QbitLock.isUnlocked = false },
+                  modifier = Modifier
+                      .align(Alignment.BottomStart)
+                      .padding(start = 24.dp, bottom = 24.dp)
+                      .size(48.dp),
+                  backgroundColor = Color(0xFFF5B301) // Warning Yellow
+              ) {
+                  Icon(
+                      painter = painterResource(MR.images.ic_lock), 
+                      contentDescription = "Quick Exit",
+                      tint = Color.Black
+                  )
+              }
+          }
+        }
+        else -> {
+          CalendarCoverScreen(onUnlock = { QbitLock.isUnlocked = true })
+        }
       }
     }
     SimplexApp.context.schedulePeriodicServiceRestartWorker()

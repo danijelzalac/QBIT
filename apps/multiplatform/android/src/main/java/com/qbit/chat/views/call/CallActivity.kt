@@ -1,22 +1,61 @@
 package com.qbit.chat.views.call
 
+import android.Manifest
 import android.app.KeyguardManager
+import android.app.PictureInPictureParams
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.view.WindowManager
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContentColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.qbit.chat.MainActivity
 import com.qbit.chat.SimplexApp
 import com.qbit.chat.model.NtfManager.AcceptCallAction
+import chat.simplex.common.*
+import chat.simplex.common.helpers.*
+import chat.simplex.common.model.*
 import chat.simplex.common.platform.Log
+import chat.simplex.common.platform.*
+import chat.simplex.common.ui.theme.*
+import chat.simplex.common.views.helpers.*
 import chat.simplex.common.views.call.ActiveCallView
 import chat.simplex.common.views.call.IncomingCallView
+import chat.simplex.res.MR
+import dev.icerock.moko.resources.compose.painterResource
+import dev.icerock.moko.resources.compose.stringResource
+import kotlinx.coroutines.*
+import kotlinx.datetime.Clock
+import java.lang.ref.WeakReference
 
-class CallActivity: FragmentActivity() {
+class CallActivity: FragmentActivity(), ServiceConnection {
 
   var boundService: CallService? = null
 

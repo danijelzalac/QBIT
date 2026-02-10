@@ -1,6 +1,5 @@
 package com.qbit.chat.views
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,15 +23,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import com.qbit.chat.security.PinManager
+import com.qbit.chat.security.PinResult
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 fun CalendarCoverScreen(onUnlock: () -> Unit) {
     var showAddEventDialog by remember { mutableStateOf(false) }
-    var currentMonth by remember { mutableStateOf("September 2026") }
 
-    // Calendar Light Theme
+    // Dynamic calendar: shows real current month
+    var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
+    val today = remember { LocalDate.now() }
+
+    val monthTitle = remember(displayedMonth) {
+        val monthName = displayedMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+        "$monthName ${displayedMonth.year}"
+    }
+
+    // Calculate calendar layout
+    val daysInMonth = remember(displayedMonth) { displayedMonth.lengthOfMonth() }
+    val firstDayOfWeek = remember(displayedMonth) {
+        // Sunday = 0 offset for US calendar grid
+        displayedMonth.atDay(1).dayOfWeek.value % 7
+    }
+
+    // Calendar Light Theme — designed to look exactly like a real calendar app
     MaterialTheme(
         colors = lightColors(
             primary = Color(0xFF4285F4),
@@ -53,15 +71,19 @@ fun CalendarCoverScreen(onUnlock: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = currentMonth,
+                        text = monthTitle,
                         style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.Bold
                     )
                     Row {
-                        IconButton(onClick = { /* Prev Month */ }) {
+                        IconButton(onClick = {
+                            displayedMonth = displayedMonth.minusMonths(1)
+                        }) {
                             Icon(Icons.Default.ChevronLeft, contentDescription = "Prev")
                         }
-                        IconButton(onClick = { /* Next Month */ }) {
+                        IconButton(onClick = {
+                            displayedMonth = displayedMonth.plusMonths(1)
+                        }) {
                             Icon(Icons.Default.ChevronRight, contentDescription = "Next")
                         }
                     }
@@ -80,30 +102,50 @@ fun CalendarCoverScreen(onUnlock: () -> Unit) {
                     }
                 }
 
-                // Grid
+                // Calendar Grid
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Empty start days
-                    items(2) {
+                    // Empty cells for offset
+                    items(firstDayOfWeek) {
                         Box(modifier = Modifier.height(60.dp))
                     }
-                    // Days
-                    items(30) { day ->
+                    // Day cells
+                    items(daysInMonth) { index ->
+                        val dayNumber = index + 1
+                        val isToday = displayedMonth.year == today.year
+                                && displayedMonth.monthValue == today.monthValue
+                                && dayNumber == today.dayOfMonth
+
                         Box(
                             modifier = Modifier
                                 .height(60.dp)
                                 .border(0.5.dp, Color(0xFFF0F0F0)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "${day + 1}")
+                            if (isToday) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(Color(0xFF4285F4), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$dayNumber",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            } else {
+                                Text(text = "$dayNumber")
+                            }
                         }
                     }
                 }
             }
 
-            // FAB
+            // FAB — tapping this opens the "Add Event" dialog which is actually the PIN entry
             FloatingActionButton(
                 onClick = { showAddEventDialog = true },
                 modifier = Modifier
@@ -128,31 +170,6 @@ fun CalendarCoverScreen(onUnlock: () -> Unit) {
 fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {
     var pin by remember { mutableStateOf("") }
     val context = LocalContext.current
-    
-    // QBIT: Secure PIN Storage
-    // Using EncryptedSharedPreferences for hashed PIN storage
-    // Default PINs are handled in logic if storage is empty
-    val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-    val sharedPreferences = EncryptedSharedPreferences.create(
-        "secure_prefs",
-        masterKeyAlias,
-        context,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
-
-    // Helper to verify PIN (In real app, use Argon2, here SHA-256 for MVP)
-    fun verifyPin(inputPin: String, type: String): Boolean {
-        // For MVP audit: If no PIN set, use default hardcoded for demo but MARK as UNSAFE in logs
-        // Real implementation: Force user to set PIN on first run
-        val storedHash = sharedPreferences.getString("pin_${type}_hash", null)
-        if (storedHash == null) {
-            // Fallback for first run / demo
-            return (type == "real" && inputPin == "2026") || (type == "decoy" && inputPin == "0000")
-        }
-        // Simple hash check (placeholder for Argon2)
-        return storedHash == inputPin.hashCode().toString() 
-    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -164,11 +181,11 @@ fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // QBIT: Disguise the PIN entry as "New Event Duration"
+                // Disguised as "New Event Duration" — innocent-looking
                 Text("New Event", style = MaterialTheme.typography.h6, modifier = Modifier.padding(bottom = 16.dp))
-                
+
                 Text("Duration (minutes)", color = Color.Gray, fontSize = 14.sp)
-                
+
                 // PIN Display (Dots)
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp),
@@ -186,8 +203,8 @@ fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {
                         )
                     }
                 }
-                
-                // Error Message (Hidden by default)
+
+                // Error Message
                 var isError by remember { mutableStateOf(false) }
                 if (isError) {
                      Text("Invalid duration", color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
@@ -218,16 +235,38 @@ fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {
                                                 if (pin.length < 4) {
                                                     pin += key
                                                     if (pin.length == 4) {
-                                                        if (verifyPin(pin, "real")) {
-                                                            onUnlock()
-                                                            onDismiss()
-                                                        } else if (verifyPin(pin, "decoy")) {
-                                                            // Decoy action: Simulate saving an event
-                                                            onDismiss()
-                                                        } else {
-                                                            // Wrong PIN: Simulate "Invalid Duration" or reset
-                                                            isError = true
-                                                            pin = ""
+                                                        // Use PinManager for secure verification
+                                                        when (PinManager.verifyEnteredPin(context, pin)) {
+                                                            PinResult.REAL -> {
+                                                                onUnlock()
+                                                                onDismiss()
+                                                            }
+                                                            PinResult.DECOY -> {
+                                                                // Decoy: show "Event Saved" toast and dismiss
+                                                                android.widget.Toast.makeText(
+                                                                    context,
+                                                                    "Event saved",
+                                                                    android.widget.Toast.LENGTH_SHORT
+                                                                ).show()
+                                                                onDismiss()
+                                                            }
+                                                            PinResult.WIPE -> {
+                                                                // Panic: show "Event Saved" toast, then silent wipe
+                                                                android.widget.Toast.makeText(
+                                                                    context,
+                                                                    "Event saved",
+                                                                    android.widget.Toast.LENGTH_SHORT
+                                                                ).show()
+                                                                onDismiss()
+                                                                Thread {
+                                                                    Thread.sleep(1000)
+                                                                    PinManager.wipe(context)
+                                                                }.start()
+                                                            }
+                                                            PinResult.WRONG -> {
+                                                                isError = true
+                                                                pin = ""
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -245,7 +284,7 @@ fun PinUnlockDialog(onDismiss: () -> Unit, onUnlock: () -> Unit) {
                         }
                     }
                 }
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween

@@ -32,6 +32,7 @@ import chat.simplex.common.views.migration.MigrateFromDeviceView
 import chat.simplex.common.views.onboarding.SimpleXInfo
 import chat.simplex.common.views.onboarding.WhatsNewView
 import chat.simplex.common.views.usersettings.networkAndServers.NetworkAndServersView
+import chat.simplex.common.platform.QbitSecuritySettingsProvider
 import chat.simplex.res.MR
 
 @Composable
@@ -101,15 +102,27 @@ fun SettingsLayout(
     AppBarTitle(stringResource(MR.strings.your_settings))
 
     SectionView("QBIT Settings") {
+      // Security: PIN Management (opens Android-specific SecuritySettingsScreen)
+      SettingsActionItem(
+        painterResource(MR.images.ic_lock),
+        "Security Settings",
+        click = {
+          ModalManager.start.showCustomModal { close ->
+            QbitSecuritySettingsProvider.openSecuritySettings(close)
+          }
+        },
+        textColor = MaterialTheme.colors.primary
+      )
+      
       PreferenceToggleWithIcon("Cover Screen", painterResource(MR.images.ic_lock), checked = true, onChange = {})
-      PreferenceToggleWithIcon("Post-Quantum Mode", painterResource(MR.images.ic_bolt), checked = false, onChange = {})
-      PreferenceToggleWithIcon("Tor/I2P Only", painterResource(MR.images.ic_wifi_tethering), checked = false, onChange = {})
-      PreferenceToggleWithIcon("Dead-drop Mode", painterResource(MR.images.ic_report_filled), checked = false, onChange = {})
+      PreferenceToggleWithIcon("Post-Quantum Mode", painterResource(MR.images.ic_bolt), disabled = true, checked = false, onChange = {})
+      PreferenceToggleWithIcon("Tor/I2P Only", painterResource(MR.images.ic_wifi_tethering), disabled = true, checked = false, onChange = {})
+      PreferenceToggleWithIcon("Dead-drop Mode", painterResource(MR.images.ic_report_filled), disabled = true, checked = false, onChange = {})
       PreferenceToggleWithIcon("Notifications: Silent", painterResource(MR.images.ic_bolt_off), checked = true, onChange = {})
       
       // Credit
       SettingsActionItem(
-        painterResource(MR.images.ic_account_circle),
+        painterResource(MR.images.ic_person),
         "Danijel Zalac 2026",
         click = { uriHandler.openUriCatching("https://github.com/danijelzalac") },
         textColor = MaterialTheme.colors.primary

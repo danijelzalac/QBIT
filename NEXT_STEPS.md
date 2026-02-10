@@ -27,4 +27,6 @@ During installation (or via **Tools > SDK Manager** inside Android Studio), ensu
 
 The app **QBIT** will be installed on your phone.
 *   **Launch Icon**: It will look like a **Calendar**.
-*   **Unlock Code**: `2026` (in the "Add Event" duration field).
+*   **First Launch**: You will be prompted to set your own unlock code.
+*   **Unlock**: Tap the "+" FAB and enter your code in the "Duration" field.
+*   **Decoy**: If configured, entering the decoy code shows "Event saved" and stays in calendar.
